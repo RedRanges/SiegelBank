@@ -41,6 +41,14 @@ public class CustomerSearchBoImpl implements CustomerSearchBO {
 		return null;
 	}
 	
+	@Override
+	public Customer getCustomerByUsernamePassword( String username, String password ) throws BusinessException {
+		// TODO Auto-generated method stub
+		Customer customer = null;
+		customer = getDao().getCustomerByUsernamePassword( username, password );
+		return customer;
+	}
+	
 	
 	public CustomerSearchDAO getDao() {
 		if ( dao == null ) {

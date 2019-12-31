@@ -11,4 +11,5 @@ public interface CustomerSearchDAO {
 	public List< Customer > getCustomersByDob(Date dob) throws BusinessException;
 	public List< Customer > getCustomersByRegistered(char registered) throws BusinessException;
 	public List< Customer > getCustomerByUsername(String teamName) throws BusinessException;
+	public Customer getCustomerByUsernamePassword(String username, String password) throws BusinessException;
 }

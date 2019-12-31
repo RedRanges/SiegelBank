@@ -8,6 +8,7 @@ public class Customer {
 	private String username;
 	private Date dob;
 	private char registered;
+	private String password;
 	
 	public Customer() {
 		
@@ -65,6 +66,14 @@ public class Customer {
 
 	public void setRegistered(char registered) {
 		this.registered = registered;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 	
 

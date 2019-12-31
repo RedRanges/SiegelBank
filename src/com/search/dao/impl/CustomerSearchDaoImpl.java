@@ -66,4 +66,33 @@ public class CustomerSearchDaoImpl implements CustomerSearchDAO {
 		return null;
 	}
 
+
+
+	@Override
+	public Customer getCustomerByUsernamePassword(String username, String password) throws BusinessException{
+		Customer Customer=null;
+		try( Connection connection=OracleConnection.getConnection() ) {
+			String sql = "select c.id, c.LAST_NAME, c.FIRST_NAME, c.dob, c.USERNAME, c.registered from "
+					+ "Customers c where c.username=?";
+			
+			PreparedStatement preparedStatement=connection.prepareStatement(sql);
+			preparedStatement.setString( 1, username );
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if( resultSet.next() ) {
+				Customer = new Customer();
+				Customer.setId(resultSet.getInt( "id" ) );
+				Customer.setLastName( resultSet.getString("last_Name") );
+				Customer.setFirstName( resultSet.getString("first_Name") );
+				Customer.setDob( resultSet.getDate("dob") );
+				Customer.setUsername( resultSet.getString("username") );
+				Customer.setRegistered( resultSet.getString("registered").charAt( 0 ) );
+			}else {
+				throw new BusinessException("No customer with matching username : " + username );
+			}
+		} catch (ClassNotFoundException | SQLException e) {
+			throw new BusinessException( "Internal error occured..please contact support..."+ e );
+		}
+		return Customer;
+	}
+
 }

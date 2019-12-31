@@ -10,6 +10,7 @@ public interface CustomerSearchBO {
 	
 	public Customer getCustomerById(String id) throws BusinessException;
 	public List< Customer > getCustomersByDob(String dob) throws BusinessException;
+	public Customer getCustomerByUsernamePassword(String username, String password) throws BusinessException;
 	public List< Customer > getCustomersByRegistered(char registered) throws BusinessException;
 	public List< Customer > getCustomerByUsername(String teamName) throws BusinessException;
 

@@ -34,7 +34,27 @@ public class BankMain {
 			}
 			switch ( ch ) {
 				case 1:
-					log.info( "Under construction" );
+					try {
+						CustomerSearchBO bo = new CustomerSearchBoImpl();
+						log.info( "Login page" );
+						log.info( "username : " );
+						String username = bufferedReader.readLine();
+						log.info( "password : " );
+						String password = bufferedReader.readLine();
+						try {
+							Customer customer = bo.getCustomerByUsernamePassword( username, password );
+							log.info( "Login sucessful" );
+							log.info( customer );
+						} catch ( BusinessException e ) {
+							log.error( e.getMessage() );
+						}
+						
+					} catch ( IOException e ) {
+						
+					}
+		
+					
+					
 					break;
 				case 2:
 					log.info( "Under construction" );
@@ -49,7 +69,7 @@ public class BankMain {
 		} while( ch != 3 );
 		
 		
-		CustomerSearchBO bo = new CustomerSearchBoImpl();
+		
 		
 		
 //		do {
