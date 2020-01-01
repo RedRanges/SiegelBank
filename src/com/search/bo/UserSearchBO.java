@@ -5,4 +5,6 @@ import com.search.to.User;
 
 public interface UserSearchBO {
 	public User getUserByUsernamePassword(String username, String password) throws BusinessException;
+	public User getUserByUsername( String username ) throws BusinessException;
+	public User insertUser( String username, String password ) throws BusinessException;
 }

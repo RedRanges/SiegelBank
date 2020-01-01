@@ -27,9 +27,9 @@ public class UserSearchDaoImpl implements UserSearchDAO {
 	public User getUserByUsernamePassword( String username, String password ) throws BusinessException {
 		
 		User user = null;
-		try( Connection connection=OracleConnection.getConnection() ) {
+		try( Connection connection = OracleConnection.getConnection() ) {
 			String sql = "select u.username from users u where u.username=? and u.password=?";
-			
+								
 			PreparedStatement preparedStatement=connection.prepareStatement( sql );
 			preparedStatement.setString( 1, username );
 			preparedStatement.setString( 2,  password );
@@ -44,6 +44,43 @@ public class UserSearchDaoImpl implements UserSearchDAO {
 			throw new BusinessException( "Internal error occured..please contact support..."+ e );
 		}
 		return user;
+	}
+
+	@Override
+	public User getUserByUsername( String username ) throws BusinessException {
+		User user = null;
+		try ( Connection connection = OracleConnection.getConnection() ) {
+			String sql = "select u.username from users u where u.username=?";
+			
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setString( 1, username );
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if ( resultSet.next() ) {
+				throw new BusinessException( "Username already exists. Please select a different username : " );
+			} else {
+				// TODO figure out what happens when username is allowed to be entered
+			}
+			
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "Internal error occured... please contact support..." + e );
+		}
+		return null;
+	}
+
+	@Override
+	public User insertUser(String username, String password) throws BusinessException {
+		User user = null;
+		try ( Connection connection = OracleConnection.getConnection() ) {
+			String sql = "insert into users (username, password) values (?, ?)";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setString( 1, username );
+			preparedStatement.setString( 2, password );
+			
+			preparedStatement.executeUpdate();
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "Internal error occured ... please contact support ... " + e );
+		}
+		return null;
 	}
 
 }
