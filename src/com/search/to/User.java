@@ -5,6 +5,11 @@ public class User {
 	private String password;
 	private int userId;
 	
+	public String toString() {
+		return "User : " + username + " with password : " + password ;
+		
+	}
+	
 	public String getUsername() {
 		return username;
 	}
