@@ -32,12 +32,27 @@ public class CheckingAccountBOImpl implements CheckingAccountBO {
 		return checkingAccount;
 	}
 	
+	@Override
+	public int updateBalance(int userId, String type, double delta, double balance) throws BusinessException {
+		int c = 0;	
+		if ( type.equals( "withdraw" ) ) {
+			delta = delta * -1;
+		}
+		double newBalance = balance + delta;
+		c = getDao().updateBalance( userId, newBalance );
+		
+		
+		return c;
+	}
+	
 	public CheckingAccountDAO getDao() {
 		if ( dao == null ) {
 			dao = new CheckingAccountDAOImpl();
 		}
 		return dao;
 	}
+
+
 
 
 

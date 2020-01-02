@@ -57,4 +57,22 @@ public class CheckingAccountDAOImpl implements CheckingAccountDAO {
 		return checkingAccount;
 	}
 
+	@Override
+	public int updateBalance( int userId, double newBalance ) throws BusinessException {
+		int c = 0;
+		try ( Connection connection = OracleConnection.getConnection() ) {
+
+			String sql = "update checking_account set balance=? where userid=?";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setDouble( 1, newBalance );
+			preparedStatement.setInt( 2, userId );
+			
+			c =  preparedStatement.executeUpdate();
+	
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "Internal error occured... please contact support..." + e );
+		}
+		return c;
+	}
+
 }

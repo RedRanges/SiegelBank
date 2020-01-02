@@ -11,6 +11,12 @@ public class UserBOImpl implements UserBO {
 	private UserDAO dao;
 	
 	@Override
+	public User getUserId( String username ) throws BusinessException {
+		User user = getDao().getUserId( username );
+		return user;
+	}
+	
+	@Override
 	public User getUserByUsernamePassword(String username, String password) throws BusinessException {
 		// TODO establish requirements for a valid username
 		// * case insensitive 
@@ -56,6 +62,10 @@ public class UserBOImpl implements UserBO {
 		}
 		return dao;
 	}
+
+
+
+
 
 
 

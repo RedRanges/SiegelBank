@@ -3,8 +3,13 @@ package com.search.to;
 public class Transaction {
 	private String type;
 	private double amount;
-	private int userid;
+	private int userId;
 	private int id;
+
+	
+	public String toString() {
+		return "type : " + type + " amount : " + amount + "userID : " + userId + "transaction id : " + id; 
+	}
 	
 	public String getType() {
 		return type;
@@ -18,17 +23,21 @@ public class Transaction {
 	public void setAmount(double amount) {
 		this.amount = amount;
 	}
-	public int getUserid() {
-		return userid;
-	}
-	public void setUserid(int userid) {
-		this.userid = userid;
-	}
+
 	public int getId() {
 		return id;
 	}
 	public void setId(int id) {
 		this.id = id;
 	}
+	
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+	
 
 }

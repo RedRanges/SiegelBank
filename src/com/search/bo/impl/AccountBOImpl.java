@@ -31,12 +31,23 @@ public class AccountBOImpl implements AccountBO {
 		return c;
 	}
 	
+	@Override
+	public int createNewAccount(int id) throws BusinessException {
+		int c;
+		c = getDao().createNewAccount( id );
+		return c;
+		
+		
+	}
+	
 	public AccountDAO getDao() {
 		if ( dao == null ) {
 			dao = new AccountDAOImpl();
 		}
 		return dao;
 	}
+
+	
 
 
 

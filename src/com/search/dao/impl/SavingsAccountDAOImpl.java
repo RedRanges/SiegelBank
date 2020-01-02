@@ -53,8 +53,25 @@ public class SavingsAccountDAOImpl implements SavingsAccountDAO {
 			throw new BusinessException( "Internal error occured... please contact support..." + e );
 		}
 		
-		
 		return savingsAccount;
+	}
+
+	@Override
+	public int updateBalance( int userId, double newBalance ) throws BusinessException {
+		int c = 0;
+		try ( Connection connection = OracleConnection.getConnection() ) {
+
+			String sql = "update savings_account set balance=? where userid=?";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setDouble( 1, newBalance );
+			preparedStatement.setInt(2, userId );
+			
+			c =  preparedStatement.executeUpdate();
+	
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "Internal error occured... please contact support..." + e );
+		}
+		return c;
 		
 	}
 

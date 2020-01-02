@@ -7,7 +7,7 @@ public class SavingsAccount {
 	
 	@Override
 	public String toString() {
-		return "account number : " + accountNumber + "balance : $" + balance;
+		return "account number : " + accountNumber + " balance : $" + balance;
 	}
 	
 	public int getAccountNumber() {

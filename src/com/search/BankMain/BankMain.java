@@ -168,13 +168,83 @@ public class BankMain {
 										}
 										switch ( accountsCh ) {
 											case 1:
-												log.info( "view savings under construction" );
-												// TODO view account balance
-												// TODO withdraw from account
-												// TODO deposit from account
-												// TODO transfer to another account
-												accountsCh = 4;	
+												
+												log.info( "view savings account under construction" );
+												if ( account.getRegisteredSavings() == 'N' ) {
+													log.info( "Your savings account is still under review. Please check back soon." );
+												} else {
+													SavingsAccount savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+													log.info( "Your account balance is : $" + savingsAccount.getBalance() );
+													log.info( "Please make a selection" );
+													
+													int sacChoice = 0;
+													do {
+														log.info( "[ 1 ] deposit" );
+														log.info( "[ 2 ] withdraw");
+														log.info( "[ 3 ] transfer money" );
+														log.info( "[ 4 ] recieve transfer" );
+														log.info( "[ 5 ] Go Back" );
+														try {		
+															sacChoice = Integer.parseInt( bufferedReader.readLine() );
+															
+														} catch (IOException e ) {
+															
+														} catch ( NumberFormatException e ) {
+															log.error( "Please choose a number 1 - 5" );
+															sacChoice = 0;
+														}
+														switch ( sacChoice ) {
+														case 1:
+															try {
+																log.info( "Please enter an amount to deposit : " );
+																 Double amount = Double.parseDouble( bufferedReader.readLine() );
+																 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, savingsAccount.getBalance(),  user.getId() );
+																 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+																 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+																 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
+															} catch ( IOException e ) {
+																
+															} catch ( BusinessException e ) {
+																log.error( e.getMessage() );
+															} catch ( NumberFormatException e ) {
+																log.error( "Please enter a number 1 - 5" );
+															}
+															break;
+														case 2:
+															try {
+																log.info( "Please enter an amount to withdraw : " );
+																 Double amount = Double.parseDouble( bufferedReader.readLine() );
+																 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, savingsAccount.getBalance(),  user.getId() );
+																 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+																 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+																 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
+															} catch ( IOException e ) {
+																
+															} catch ( BusinessException e ) {
+																log.error( e.getMessage() );
+															} catch ( NumberFormatException e ) {
+																log.error( "Please enter a number 1 - 5" );
+															}
+															break;
+														case 3:
+															// TODO transfer to another account
+															break;
+														case 4:
+															// TODO view incoming transfers
+															break;
+														case 5:
+															// TODO go back to customer menu
+															break;
+														default: log.info( "Please make a selection 1 - 5" );
+																	sacChoice = 0;
+														}
+													} while( sacChoice != 5 );
+												}
+												accountsCh = 4;
 												break;
+									
+												
+											
 											case 2:
 												log.info( "Apply for checking account under construction" );
 												log.info( user.getUsername() + ", you are applying for a checking account with Siegel Bank" );
@@ -208,6 +278,7 @@ public class BankMain {
 									// if customer does not have a savings account
 									else if ( account.getAppliedChecking() == 'Y' && account.getAppliedSavings() == 'N' ) {
 										do {
+										CheckingAccount checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
 										log.info( "[ 1 ] View Checking Account" );
 										log.info( "[ 2 ] Apply for Savings Account" );
 										log.info( "[ 3 ] Log out" );
@@ -225,21 +296,63 @@ public class BankMain {
 											if ( account.getRegisteredChecking() == 'N' ) {
 												log.info( "Your checking account is still under review. Please check back soon." );
 											} else {
-												CheckingAccount checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
-												// TODO view account balance
-												log.info( "Your account balance is : $" + checkingAccount.getBalance() );
-												log.info( "Please make a selection" );
-
-												// TODO withdraw from account
-												// TODO deposit from account
-												// TODO transfer to another account
-												// TODO view incoming transfers
-												// TODO go back to customer menu
-												log.info( "[ 1 ] deposit" );
-												log.info( "[ 2 ] withdraw");
-												log.info( "[ 3 ] transfer money" );
-												log.info( "[ 4 ] recieve transfer" );
-												log.info( "[ 5 ] Go Back" );
+												int chChoice = 0;
+												do {
+													log.info( "[ 1 ] deposit" );
+													log.info( "[ 2 ] withdraw");
+													log.info( "[ 3 ] transfer money" );
+													log.info( "[ 4 ] recieve transfer" );
+													log.info( "[ 5 ] Go Back" );
+													try {		
+														chChoice = Integer.parseInt( bufferedReader.readLine() );
+														
+													} catch (IOException e ) {
+														
+													} catch ( NumberFormatException e ) {
+														log.error( "Please choose a number 1 - 5" );
+														chChoice = 0;
+													}
+													switch ( chChoice ) {
+													case 1:
+														try {
+															log.info( "Please enter an amount to deposit : " );
+															 Double amount = Double.parseDouble( bufferedReader.readLine() );
+															 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, checkingAccount.getBalance(),  user.getId() );
+															 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+															 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+															 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
+														} catch ( IOException e ) {
+															
+														} catch ( BusinessException e ) {
+															log.error( e.getMessage() );
+														} catch ( NumberFormatException e ) {
+															log.error( "Please enter a number 1 - 5" );
+														}
+														break;
+													case 2:
+														try {
+															log.info( "Please enter an amount to withdraw : " );
+															 Double amount = Double.parseDouble( bufferedReader.readLine() );
+															 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, checkingAccount.getBalance(),  user.getId() );
+															 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+															 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+															 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
+														} catch ( IOException e ) {
+															
+														} catch ( BusinessException e ) {
+															log.error( e.getMessage() );
+														} catch ( NumberFormatException e ) {
+															log.error( "Please enter a number 1 - 5" );
+														}
+														break;
+													case 3:
+														break;
+													case 4:
+														break;
+													case 5:
+														break;
+													} // END OF SWITCH
+													} while( chChoice != 5 );
 											}
 											accountsCh = 4;	
 											break;
@@ -296,16 +409,67 @@ public class BankMain {
 												CheckingAccount checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
 												log.info( "Your account balance is : $" + checkingAccount.getBalance() );
 												log.info( "Please make a selection" );
-												// TODO withdraw from account
-												// TODO deposit from account
-												// TODO transfer to another account
-												// TODO view incoming transfers
-												// TODO go back to customer menu
+																							
+												int chChoice = 0;
+												do {
 												log.info( "[ 1 ] deposit" );
 												log.info( "[ 2 ] withdraw");
 												log.info( "[ 3 ] transfer money" );
 												log.info( "[ 4 ] recieve transfer" );
 												log.info( "[ 5 ] Go Back" );
+												try {		
+													chChoice = Integer.parseInt( bufferedReader.readLine() );
+													
+												} catch (IOException e ) {
+													
+												} catch ( NumberFormatException e ) {
+													log.error( "Please choose a number 1 - 5" );
+													chChoice = 0;
+												}
+												switch ( chChoice ) {
+												case 1:
+													try {
+														log.info( "Please enter an amount to deposit : " );
+														 Double amount = Double.parseDouble( bufferedReader.readLine() );
+														 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, checkingAccount.getBalance(),  user.getId() );
+														 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+														 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+														 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
+													} catch ( IOException e ) {
+														
+													} catch ( BusinessException e ) {
+														log.error( e.getMessage() );
+													} catch ( NumberFormatException e ) {
+														log.error( "Please enter a number 1 - 5" );
+													}
+													break;
+												case 2:
+													try {
+														log.info( "Please enter an amount to withdraw : " );
+														 Double amount = Double.parseDouble( bufferedReader.readLine() );
+														 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, checkingAccount.getBalance(),  user.getId() );
+														 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+														 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+														 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
+													} catch ( IOException e ) {
+														
+													} catch ( BusinessException e ) {
+														log.error( e.getMessage() );
+													} catch ( NumberFormatException e ) {
+														log.error( "Please enter a number 1 - 5" );
+													}
+													break;
+												case 3:
+													// TODO transfer to another account
+													break;
+												case 4:
+													// TODO view incoming transfers
+													break;
+												case 5:
+													// TODO go back to customer menu
+													break;
+												} // END OF SWITCH
+												} while( chChoice != 5 );
 											}
 											accountsCh = 4;	
 											break;
@@ -317,11 +481,9 @@ public class BankMain {
 												SavingsAccount savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
 												log.info( "Your account balance is : $" + savingsAccount.getBalance() );
 												log.info( "Please make a selection" );
-												// TODO withdraw from account
-												// TODO deposit from account
-												// TODO transfer to another account
-												// TODO view incoming transfers
-												// TODO go back to customer menu
+												
+												
+												
 												int sacChoice = 0;
 												do {
 													log.info( "[ 1 ] deposit" );
@@ -340,15 +502,45 @@ public class BankMain {
 													}
 													switch ( sacChoice ) {
 													case 1:
-														Transaction transaction = transactionsBo.makeTransaction();
+														try {
+															log.info( "Please enter an amount to deposit : " );
+															 Double amount = Double.parseDouble( bufferedReader.readLine() );
+															 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, savingsAccount.getBalance(),  user.getId() );
+															 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+															 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+															 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
+														} catch ( IOException e ) {
+															
+														} catch ( BusinessException e ) {
+															log.error( e.getMessage() );
+														} catch ( NumberFormatException e ) {
+															log.error( "Please enter a number 1 - 5" );
+														}
 														break;
 													case 2:
+														try {
+															log.info( "Please enter an amount to withdraw : " );
+															 Double amount = Double.parseDouble( bufferedReader.readLine() );
+															 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, savingsAccount.getBalance(),  user.getId() );
+															 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+															 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+															 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
+														} catch ( IOException e ) {
+															
+														} catch ( BusinessException e ) {
+															log.error( e.getMessage() );
+														} catch ( NumberFormatException e ) {
+															log.error( "Please enter a number 1 - 5" );
+														}
 														break;
 													case 3:
+														// TODO transfer to another account
 														break;
 													case 4:
+														// TODO view incoming transfers
 														break;
 													case 5:
+														// TODO go back to customer menu
 														break;
 													default: log.info( "Please make a selection 1 - 5" );
 																sacChoice = 0;
@@ -370,8 +562,16 @@ public class BankMain {
 									
 								} while ( accountsCh != 3 ); // END OF CUSTOMER MENU DO WHILE
 								// ####### Employee Menu #######
+
 								} else {
 									log.info( "Employee menu under construction" );
+									// TODO approve accounts
+									// TODO log all transactions
+									// TODO log all transfer
+									log.info( "[ 1 ] review new accounts" );
+									log.info( "[ 2 ] log transactions");
+									log.info( "[ 3 ] log all transfer" );
+									log.info( "[ 4 ] Log out" );
 									ch = 3;
 								}
 								} catch ( BusinessException e ) {
@@ -409,6 +609,10 @@ public class BankMain {
 								log.error( e );
 							}
 						}
+						// TODO create account for user
+						user = bo.getUserId( username );
+						
+						accountBo.createNewAccount( user.getId() );
 						log.info( "Registration sucessful!" );
 						log.info( "You may now login and apply for a checking or saving account." );
 						ch = 0;

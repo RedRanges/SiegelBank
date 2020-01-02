@@ -67,4 +67,18 @@ public class AccountDAOImpl implements AccountDAO {
 		return c;
 	}
 
+	@Override
+	public int createNewAccount(int userId ) throws BusinessException {
+		int c = 0;
+		try ( Connection connection = OracleConnection.getConnection() ){
+			String sql = "insert into accounts ( userid ) values (?)";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setInt( 1, userId );
+			c = preparedStatement.executeUpdate();
+		} catch (ClassNotFoundException | SQLException e) {
+			throw new BusinessException ( "Internal Error please contact support." );
+		} 
+		return c;
+	}
+
 }

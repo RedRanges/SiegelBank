@@ -17,8 +17,24 @@ import com.search.to.User;
 public class UserDAOImpl implements UserDAO {
 
 	@Override
-	public User getUserById( String id ) throws BusinessException {
+	public User getUserId( String username ) throws BusinessException {
 		User user = null; 
+		try( Connection connection = OracleConnection.getConnection() ) {
+		String sql = "select u.username, u.id from users u where u.username=?";
+		PreparedStatement preparedStatement = connection.prepareStatement( sql );
+		preparedStatement.setString( 1, username );
+		ResultSet resultSet = preparedStatement.executeQuery();
+		
+		if ( resultSet.next() ) {
+			user = new User();
+			user.setUsername( resultSet.getString( "username" ) );
+			user.setId( resultSet.getInt( "id") );
+		} else {
+			throw new BusinessException( "Unable to find user" );
+		}
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "contact support "  + e );
+		}
 		
 		return user;
 	}
