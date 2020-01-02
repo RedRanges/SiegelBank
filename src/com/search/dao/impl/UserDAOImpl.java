@@ -8,13 +8,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.search.dao.UserSearchDAO;
+import com.search.dao.UserDAO;
 import com.search.exception.BusinessException;
 import com.search.to.User;
 
 
 
-public class UserSearchDaoImpl implements UserSearchDAO {
+public class UserDAOImpl implements UserDAO {
 
 	@Override
 	public User getUserById( String id ) throws BusinessException {
@@ -28,7 +28,7 @@ public class UserSearchDaoImpl implements UserSearchDAO {
 		
 		User user = null;
 		try( Connection connection = OracleConnection.getConnection() ) {
-			String sql = "select u.username from users u where u.username=? and u.password=?";
+			String sql = "select u.username, u.id from users u where u.username=? and u.password=?";
 								
 			PreparedStatement preparedStatement=connection.prepareStatement( sql );
 			preparedStatement.setString( 1, username );
@@ -37,6 +37,7 @@ public class UserSearchDaoImpl implements UserSearchDAO {
 			if( resultSet.next() ) {
 				user = new User();
 				user.setUsername( resultSet.getString( "username" ) );
+				user.setId( resultSet.getInt( "id" ) );
 			}else {
 				throw new BusinessException( "Please check username and password" );
 			}
@@ -66,9 +67,10 @@ public class UserSearchDaoImpl implements UserSearchDAO {
 		}
 		return null;
 	}
-
+	
+	// TODO change return type for inserts?
 	@Override
-	public User insertUser(String username, String password) throws BusinessException {
+	public User insertUser( String username, String password ) throws BusinessException {
 		User user = null;
 		try ( Connection connection = OracleConnection.getConnection() ) {
 			String sql = "insert into users (username, password) values (?, ?)";

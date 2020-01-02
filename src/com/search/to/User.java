@@ -3,11 +3,10 @@ package com.search.to;
 public class User {
 	private String username;
 	private String password;
-	private int userId;
+	private int id;
 	
 	public String toString() {
-		return "User : " + username + " with password : " + password ;
-		
+		return "User : " + username + " with password : " + password + " id : " + id ;
 	}
 	
 	public String getUsername() {
@@ -22,10 +21,10 @@ public class User {
 	public void setPassword( String password ) {
 		this.password = password;
 	}
-	public int getUserId() {
-		return userId;
+	public int getId () {
+		return id;
 	}
-	public void setUserId( int userId ) {
-		this.userId = userId;
+	public void setId ( int userId ) {
+		this.id = userId;
 	}
 }
