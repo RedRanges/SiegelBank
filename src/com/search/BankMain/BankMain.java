@@ -1,9 +1,12 @@
 package com.search.BankMain;
 
 import org.apache.log4j.Logger;
+
+import java.awt.List;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import com.search.exception.BusinessException;
 import com.search.bo.AccountBO;
@@ -543,7 +546,7 @@ public class BankMain {
 														// TODO go back to customer menu
 														break;
 													default: log.info( "Please make a selection 1 - 5" );
-																sacChoice = 0;
+															sacChoice = 0;
 													}
 												} while( sacChoice != 5 );
 											}
@@ -562,17 +565,81 @@ public class BankMain {
 									
 								} while ( accountsCh != 3 ); // END OF CUSTOMER MENU DO WHILE
 								// ####### Employee Menu #######
-
 								} else {
+									int empCh = 0;
+									
 									log.info( "Employee menu under construction" );
-									// TODO approve accounts
+									
 									// TODO log all transactions
 									// TODO log all transfer
+									do {
+									log.info( "Please make a selection" );
 									log.info( "[ 1 ] review new accounts" );
 									log.info( "[ 2 ] log transactions");
 									log.info( "[ 3 ] log all transfer" );
 									log.info( "[ 4 ] Log out" );
-									ch = 3;
+									try {
+									empCh = Integer.parseInt( bufferedReader.readLine() );
+									} catch ( IOException e ) {
+										
+									} catch ( NumberFormatException e ) {
+										log.info( "Please input a number 1 - 4" );
+									}
+									switch ( empCh ) {
+									
+										case 1:
+											log.info( "Searching for accounts to review :" );
+											
+											ArrayList <Account> accountList;
+											
+											try {
+												
+												accountList = accountBo.searchAppliedAccountsChecking();
+												accountList.addAll( accountBo.searchAppliedAccountsSavings() );	
+												
+												for ( Account a : accountList ) {
+													log.info( a );
+													log.info( "[ 1 ] approve" );
+													log.info( "[ 2 ] reject " );
+													try {
+													int ar = Integer.parseInt( bufferedReader.readLine() );
+													if ( ar == 1 ) {
+														accountBo.approveAccount( a );
+													} else if ( ar == 2 ) {
+														
+														accountBo.rejectAccount( a );
+													} else {
+														log.info( "Please choose 1 or 2" );
+													}
+													} catch ( IOException e ) {
+														
+													} catch ( NumberFormatException e ) {
+														log.info( "Please choose 1 or 2" );
+													}
+													 
+												}
+							
+												
+											} catch ( BusinessException e ) {
+												log.error( e );
+											}
+											
+											empCh = 0;
+											break;
+										case 2:
+											break;
+										case 3:
+											break;
+										case 4:
+											log.info( "logging out" );
+											ch = 0;
+											break;
+										default: log.info( "Please input a number 1 - 4" );
+												empCh = 0;
+									}
+									
+									
+									} while ( empCh != 4 );
 								}
 								} catch ( BusinessException e ) {
 									log.error( e );

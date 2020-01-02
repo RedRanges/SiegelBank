@@ -12,10 +12,13 @@ public class Account {
 	
 	@Override
 	public String toString() {
-		if ( this.type.equals( "Customer" ) ) {
-			return "Account type : " + type + " checking account : " + checkingAccount + " savings account : " + savingsAccount + "\n" +
-					"applied for checking : " + appliedChecking + " applied for savings : " + appliedSavings;
-		} else {
+		
+
+			if ( appliedChecking == ('\u0000') && type.equals( "Customer" ) ) {
+			return "User : " + userId + " applied for a savings account";
+			} else if ( appliedSavings == '\u0000'  && type.equals( "Customer" ) ) {
+				return "User : " + userId + " applied for a checking account account";
+			} else {
 			return "Account type : " + type;
 		}
 		

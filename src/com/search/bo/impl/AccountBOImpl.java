@@ -1,5 +1,8 @@
 package com.search.bo.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.search.bo.AccountBO;
 import com.search.dao.AccountDAO;
 import com.search.dao.impl.AccountDAOImpl;
@@ -40,12 +43,53 @@ public class AccountBOImpl implements AccountBO {
 		
 	}
 	
+	@Override
+	public ArrayList<Account> searchAppliedAccountsChecking() throws BusinessException {
+		ArrayList <Account> appliedList = getDao().searchAppliedAccountsChecking();
+		return appliedList;
+	}
+	@Override
+	public ArrayList<Account> searchAppliedAccountsSavings() throws BusinessException {
+		ArrayList <Account> appliedList = getDao().searchAppliedAccountsSavings();
+		return appliedList;
+	}
+	
+	@Override
+	public int approveAccount(Account account) throws BusinessException {
+		int c = 0;
+		if ( account.getAppliedChecking() == 'Y' ) {
+			c = getDao().approveAccount( account.getUserId(), "checking_registered" );
+		} else {
+			c = getDao().approveAccount( account.getUserId() , "saving_registered" );
+		}
+		
+		return c;
+	}
+	
+	@Override
+	public int rejectAccount( Account account ) throws BusinessException {
+		int c = 0;
+		if ( account.getAppliedChecking() == 'Y' ) {
+			c = getDao().rejectAccount( account.getUserId(), "checking_registered" );
+		} else {
+			c = getDao().rejectAccount( account.getUserId() , "saving_registered" );
+		}
+		
+		return c;
+	}
+	
 	public AccountDAO getDao() {
 		if ( dao == null ) {
 			dao = new AccountDAOImpl();
 		}
 		return dao;
 	}
+
+	
+
+	
+
+	
 
 	
 

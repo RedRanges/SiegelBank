@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.dbutil.OracleConnection;
 import com.search.dao.AccountDAO;
@@ -79,6 +81,75 @@ public class AccountDAOImpl implements AccountDAO {
 			throw new BusinessException ( "Internal Error please contact support." );
 		} 
 		return c;
+	}
+
+	@Override
+	public ArrayList<Account> searchAppliedAccountsChecking() throws BusinessException {
+		ArrayList <Account> accountList = null;
+		try ( Connection connection = OracleConnection.getConnection() ) {
+			accountList = new ArrayList();
+			String sql = "select a.userid, a.checking_applied, a.checking_registered from accounts a where (a.checking_registered='N') and (a.checking_applied='Y')";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if ( resultSet.next() ) {
+				Account account = new Account();
+				account.setUserId( resultSet.getInt( "userid" ) );
+				account.setType( "Customer" );
+				account.setAppliedChecking( resultSet.getString("checking_applied").charAt( 0 ) );
+				account.setRegisteredChecking( resultSet.getString("checking_registered").charAt( 0 ) );
+				
+				
+				accountList.add( account );
+				
+			} else {
+//				throw new BusinessException( "No accounts found" );
+			}	
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "Internal error occured... please contact support..." + e );
+		}
+		return  accountList;
+	}
+
+	@Override
+	public ArrayList<Account> searchAppliedAccountsSavings() throws BusinessException {
+		ArrayList <Account> accountList = null;
+		try ( Connection connection = OracleConnection.getConnection() ) {
+			accountList = new ArrayList();
+			String sql = "select a.userid, a.saving_applied, a.saving_registered from accounts a where ( a.saving_registered='N') and (a.saving_applied='Y')";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if ( resultSet.next() ) {
+				Account account = new Account();
+				account.setUserId( resultSet.getInt( "userid" ) );
+				account.setType( "Customer" );
+				account.setAppliedSavings( resultSet.getString("saving_applied").charAt( 0 ) );
+				account.setRegisteredSavings( resultSet.getString("saving_registered").charAt( 0 ) );
+				
+				accountList.add( account );
+				
+			} else {
+//				throw new BusinessException( "No accounts found" );
+			}	
+		} catch ( ClassNotFoundException | SQLException e ) {
+			throw new BusinessException( "Internal error occured... please contact support..." + e );
+		}
+		return  accountList;
+	}
+
+	@Override
+	public int approveAccount(int userId, String accountType) throws BusinessException {
+		int c = 0;
+		try ( Connection connection = OracleConnection.getConnection() ){
+			String sql = "update accounts set " + accountType+"='Y' where userid = ?";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setInt( 1, userId );
+			
+			c = preparedStatement.executeUpdate();
+		} catch (ClassNotFoundException | SQLException e) {
+			throw new BusinessException ( "Internal Error please contact support." + e );
+		} 
+		return c;
+		
 	}
 
 }
