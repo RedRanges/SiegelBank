@@ -8,6 +8,8 @@ public interface UserDAO {
 	public User getUserByUsernamePassword( String username, String password ) throws BusinessException;
 	public User getUserByUsername(String username) throws BusinessException;
 	public User insertUser(String username, String password) throws BusinessException;
+	public User findUser(String username) throws BusinessException;
+	public User getUserById(int id) throws BusinessException;
 	
 }
 

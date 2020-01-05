@@ -7,7 +7,8 @@ public class CheckingAccount {
 	
 	@Override
 	public String toString() {
-		return "account number : " + accountNumber + "balance : $" + balance;
+//		return "account number : " + accountNumber + "balance : $" + balance;
+		return "";
 		
 	}
 	

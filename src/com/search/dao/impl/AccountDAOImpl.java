@@ -102,7 +102,7 @@ public class AccountDAOImpl implements AccountDAO {
 				accountList.add( account );
 				
 			} else {
-//				throw new BusinessException( "No accounts found" );
+				throw new BusinessException( "No checking accounts found" );
 			}	
 		} catch ( ClassNotFoundException | SQLException e ) {
 			throw new BusinessException( "Internal error occured... please contact support..." + e );
@@ -128,8 +128,9 @@ public class AccountDAOImpl implements AccountDAO {
 				accountList.add( account );
 				
 			} else {
-//				throw new BusinessException( "No accounts found" );
-			}	
+				throw new BusinessException( "No savings accounts found" );
+			}
+				
 		} catch ( ClassNotFoundException | SQLException e ) {
 			throw new BusinessException( "Internal error occured... please contact support..." + e );
 		}
@@ -150,6 +151,21 @@ public class AccountDAOImpl implements AccountDAO {
 		} 
 		return c;
 		
+	}
+
+	@Override
+	public int rejectAccount(int userId, String accountType) throws BusinessException {
+		int c = 0;
+		try ( Connection connection = OracleConnection.getConnection() ){
+			String sql = "update accounts set " + accountType+"='R' where userid = ?";
+			PreparedStatement preparedStatement = connection.prepareStatement( sql );
+			preparedStatement.setInt( 1, userId );
+			
+			c = preparedStatement.executeUpdate();
+		} catch (ClassNotFoundException | SQLException e) {
+			throw new BusinessException ( "Internal Error please contact support." + e );
+		} 
+		return c;
 	}
 
 }

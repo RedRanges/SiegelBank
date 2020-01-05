@@ -2,6 +2,7 @@ package com.search.dao.impl;
 
 import com.search.exception.BusinessException;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,10 +27,13 @@ public class CheckingAccountDAOImpl implements CheckingAccountDAO {
 			preparedStatement.setInt(2, userId );
 			
 			c =  preparedStatement.executeUpdate();
+//			CallableStatement callable;
+//			callable = connection.prepareCall( "Call update_account_table" );
 	
 		} catch ( ClassNotFoundException | SQLException e ) {
 			throw new BusinessException( "Internal error occured... please contact support..." + e );
 		}
+		
 		return c;
 	}
 

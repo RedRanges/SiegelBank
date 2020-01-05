@@ -63,10 +63,22 @@ public class UserBOImpl implements UserBO {
 		return dao;
 	}
 
+	@Override
+	public User findUser(String username) throws BusinessException {
+		User user = null;
+		user = getDao().findUser( username );
+		return user;
+	}
 
-
-
-
-
+	@Override
+	public User getUserById(int id) {
+		User user = null;
+		try {
+		user = getDao().getUserById( id );
+		} catch ( BusinessException e ) {
+			
+		} 
+		return user;
+	}
 
 }

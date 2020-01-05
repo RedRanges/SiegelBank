@@ -2,7 +2,6 @@ package com.search.BankMain;
 
 import org.apache.log4j.Logger;
 
-import java.awt.List;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,10 +19,13 @@ import com.search.to.SavingsAccount;
 import com.search.bo.CheckingAccountBO;
 import com.search.bo.SavingsAccountBO;
 import com.search.bo.TransactionsBO;
+import com.search.bo.TransferBO;
 import com.search.bo.impl.CheckingAccountBOImpl;
 import com.search.bo.impl.SavingsAccountBOImpl;
 import com.search.bo.impl.TransactionsBOImpl;
+import com.search.bo.impl.TransferBOImpl;
 import com.search.to.Transaction;
+import com.search.to.Transfer;
 
 
 // TODO check that logger is working correctly and only outputting things I want to the console and everything to the file
@@ -52,6 +54,9 @@ public class BankMain {
 		savingsAccountBo = new SavingsAccountBOImpl();
 		TransactionsBO transactionsBo = null;
 		transactionsBo = new TransactionsBOImpl();
+		
+		TransferBO transferBo = null;
+		transferBo = new TransferBOImpl();
 		
 		
 		int ch = 0;
@@ -107,7 +112,7 @@ public class BankMain {
 										}
 											switch ( accountsCh ) {
 												case 1:
-													log.info( "Apply for checking account under construction" );
+													
 													log.info( user.getUsername() + ", you are applying for a checking account with Siegel Bank" );
 													log.info( "Please provide the starting balance of your new account : ");
 													try {			
@@ -172,7 +177,7 @@ public class BankMain {
 										switch ( accountsCh ) {
 											case 1:
 												
-												log.info( "view savings account under construction" );
+												
 												if ( account.getRegisteredSavings() == 'N' ) {
 													log.info( "Your savings account is still under review. Please check back soon." );
 												} else {
@@ -182,10 +187,13 @@ public class BankMain {
 													
 													int sacChoice = 0;
 													do {
+														savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+														log.info( "Your account balance is : $" + savingsAccount.getBalance() );
+														log.info( "Please make a selection" );
 														log.info( "[ 1 ] deposit" );
 														log.info( "[ 2 ] withdraw");
 														log.info( "[ 3 ] transfer money" );
-														log.info( "[ 4 ] recieve transfer" );
+														log.info( "[ 4 ] view pending transfers" );
 														log.info( "[ 5 ] Go Back" );
 														try {		
 															sacChoice = Integer.parseInt( bufferedReader.readLine() );
@@ -202,8 +210,9 @@ public class BankMain {
 																log.info( "Please enter an amount to deposit : " );
 																 Double amount = Double.parseDouble( bufferedReader.readLine() );
 																 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, savingsAccount.getBalance(),  user.getId() );
-																 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+																 
 																 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+																 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
 																 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
 															} catch ( IOException e ) {
 																
@@ -218,8 +227,10 @@ public class BankMain {
 																log.info( "Please enter an amount to withdraw : " );
 																 Double amount = Double.parseDouble( bufferedReader.readLine() );
 																 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, savingsAccount.getBalance(),  user.getId() );
-																 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+																 
+																 
 																 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+																 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
 																 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
 															} catch ( IOException e ) {
 																
@@ -231,15 +242,125 @@ public class BankMain {
 															break;
 														case 3:
 															// TODO transfer to another account
+															log.info( "Siegel Bank money transfers:");
+															log.info( "please enter the username of account to transfer to : " );
+															username = bufferedReader.readLine();
+															try {
+															User transferUser = bo.findUser( username );
+															if ( transferUser != null ) {
+																log.info( "Checking or savings account?" );
+																log.info( "[ 1 ] checking" );
+																log.info( "[ 2 ] savings account" );
+																
+																int accountChoice = Integer.parseInt( bufferedReader.readLine() );
+																
+																Account transferAccount = accountBo.getAccountByUserId( transferUser.getId() );
+																if ( accountChoice == 1) {
+																	if ( transferBo.isRegistered( transferAccount.getRegisteredChecking() ) ) {
+																		
+																		try {
+																		log.info( "Please enter the amount to transfer :" );
+																		double amount = Double.parseDouble( bufferedReader.readLine() );
+																		if ( savingsAccount.getBalance() >= amount ) {
+																		transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																		savingsAccountBo.updateBalance( user.getId(), "withdraw", amount, savingsAccount.getBalance() );
+																		savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+																		log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																		} else {
+																			// not enough money for transfer
+																			log.info( "Not enough money for transfer" );
+																		}
+																		} catch ( IOException e ) {
+																			
+																		} catch ( NumberFormatException e ) {
+																			log.error( "Not a valid currency entry." );
+																		} catch ( BusinessException e ) {
+																			log.error( e );
+																		}
+																			
+																	} else {
+																		log.info( "User does not have a checking account" );
+																	}
+																	
+																} else if ( accountChoice == 2 ) {
+																	if ( transferBo.isRegistered( transferAccount.getAppliedSavings() ) ) {
+																		if ( transferBo.isRegistered( transferAccount.getRegisteredSavings() ) ) {
+																			try {
+																			log.info( "Please enter the amount to transfer :" );
+																			double amount = Double.parseDouble( bufferedReader.readLine() );
+																			// check that sender has enough to cover amount
+																			if ( savingsAccount.getBalance() >= amount ) {
+																				log.info( savingsAccount.getBalance() );
+																				
+																				transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																				savingsAccountBo.updateBalance( user.getId(), "withdraw", amount, savingsAccount.getBalance() );
+																				savingsAccount = savingsAccountBo.getSavingsAccountById(user.getId() );
+																				log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																				
+																			} else {
+																				// not enough money for transfer
+																				log.info( "Not enough money for transfer" );
+																			}
+																				
+																			} catch ( IOException e ) {
+																				
+																			} catch ( NumberFormatException e ) {
+																				log.error( "Not a valid currency entry." );
+																			} catch ( BusinessException e ) {
+																				log.error( e );
+																			}
+																			
+																		}														
+																	} else {
+																		log.info( "user does not have a savings account" );
+																	}
+																	
+																} else {
+																	log.info( "Not a valid input" );
+																}
+															}
+																
+															} catch ( BusinessException e ) {
+																log.error( e.getMessage() );
+															}
 															break;
 														case 4:
-															// TODO view incoming transfers
+															ArrayList <Transfer> transferList = new ArrayList();
+															transferList = transferBo.getTransfersByUserId( user.getId() );
+															log.info( transferList.size() );
+															
+															for ( Transfer t : transferList ) {
+																log.info( t + " from : " + bo.getUserById( t.getOrigin() ) );
+																log.info( "[ 1 ] Accept" );
+																log.info( "[ 2 ] Reject" );
+																try {
+																int pendingCh = Integer.parseInt( bufferedReader.readLine() ); 
+																if ( pendingCh == 1 ) {
+																	double amount = t.getAmount();
+																	double currentBalance = savingsAccount.getBalance();
+																	
+																	Double newBalance = amount + currentBalance;
+																	savingsAccount.setBalance( newBalance );
+																	savingsAccountBo.updateBalance( user.getId(),"deposit" , amount, currentBalance );
+																	transferBo.setStatus( t.getId(), 'A' );
+																} else {
+																	log.info( "Transfer rejected" );
+																	// TODO reject transfer
+																	transferBo.setStatus( t.getId(), 'R' );
+																}
+																} catch (IOException e){
+																	
+																} catch( NumberFormatException e ) {
+																	log.info( "Please select 1 or 2" );
+																}
+															}
 															break;
+																
 														case 5:
 															// TODO go back to customer menu
 															break;
 														default: log.info( "Please make a selection 1 - 5" );
-																	sacChoice = 0;
+																sacChoice = 0;
 														}
 													} while( sacChoice != 5 );
 												}
@@ -249,7 +370,6 @@ public class BankMain {
 												
 											
 											case 2:
-												log.info( "Apply for checking account under construction" );
 												log.info( user.getUsername() + ", you are applying for a checking account with Siegel Bank" );
 												// TODO instructions on how to enter input
 												log.info( "Please provide the starting balance of your new account : ");
@@ -296,15 +416,18 @@ public class BankMain {
 										switch ( accountsCh ) {
 										case 1:
 											log.info( "view checking account under construction" );
+											
 											if ( account.getRegisteredChecking() == 'N' ) {
 												log.info( "Your checking account is still under review. Please check back soon." );
 											} else {
 												int chChoice = 0;
 												do {
+													checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+													log.info( "BALANCE : $" + checkingAccount.getBalance() );
 													log.info( "[ 1 ] deposit" );
 													log.info( "[ 2 ] withdraw");
 													log.info( "[ 3 ] transfer money" );
-													log.info( "[ 4 ] recieve transfer" );
+													log.info( "[ 4 ] view pending transfers" );
 													log.info( "[ 5 ] Go Back" );
 													try {		
 														chChoice = Integer.parseInt( bufferedReader.readLine() );
@@ -321,8 +444,10 @@ public class BankMain {
 															log.info( "Please enter an amount to deposit : " );
 															 Double amount = Double.parseDouble( bufferedReader.readLine() );
 															 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, checkingAccount.getBalance(),  user.getId() );
-															 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+															 
+															 
 															 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+															 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
 															 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
 														} catch ( IOException e ) {
 															
@@ -337,8 +462,9 @@ public class BankMain {
 															log.info( "Please enter an amount to withdraw : " );
 															 Double amount = Double.parseDouble( bufferedReader.readLine() );
 															 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, checkingAccount.getBalance(),  user.getId() );
-															 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+															 
 															 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+															 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
 															 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
 														} catch ( IOException e ) {
 															
@@ -349,10 +475,125 @@ public class BankMain {
 														}
 														break;
 													case 3:
+														log.info( "Siegel Bank money transfers:");
+														log.info( "please enter the username of account to transfer to : " );
+														username = bufferedReader.readLine();
+														try {
+														User transferUser = bo.findUser( username );
+														if ( transferUser != null ) {
+															log.info( "Checking or savings account?" );
+															log.info( "[ 1 ] checking" );
+															log.info( "[ 2 ] savings account" );
+															
+															int accountChoice = Integer.parseInt( bufferedReader.readLine() );
+															
+															Account transferAccount = accountBo.getAccountByUserId( transferUser.getId() );
+															if ( accountChoice == 1) {
+																if ( transferBo.isRegistered( transferAccount.getRegisteredChecking() ) ) {
+																	
+																	try {
+																	log.info( "Please enter the amount to transfer :" );
+																	double amount = Double.parseDouble( bufferedReader.readLine() );
+																	Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, checkingAccount.getBalance(),  user.getId() );
+																	if ( checkingAccount.getBalance() >= amount ) {
+																	double newBalance = checkingAccount.getBalance() - amount;
+																	checkingAccountBo.updateBalance( user.getId(), transaction.getType(), amount, checkingAccount.getBalance() );
+																	checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+																	
+																	transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																	log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																	} else {
+																		// not enough money for transfer
+																		log.info( "Not enough money for transfer" );
+																	}
+																	} catch ( IOException e ) {
+																		
+																	} catch ( NumberFormatException e ) {
+																		log.error( "Not a valid currency entry." );
+																	} catch ( BusinessException e ) {
+																		log.error( e );
+																	}
+																		
+																} else {
+																	log.info( "User does not have a checking account" );
+																}
+																
+															} else if ( accountChoice == 2 ) {
+																if ( transferBo.isRegistered( transferAccount.getAppliedSavings() ) ) {
+																	if ( transferBo.isRegistered( transferAccount.getRegisteredSavings() ) ) {
+																		try {
+																		log.info( "Please enter the amount to transfer :" );
+																		double amount = Double.parseDouble( bufferedReader.readLine() );
+																		// check that sender has enough to cover amount
+																		if ( checkingAccount.getBalance() >= amount ) {
+																			log.info( checkingAccount.getBalance() );
+																			
+																			transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																			checkingAccountBo.updateBalance( user.getId(), "withdraw", amount, checkingAccount.getBalance() );
+																			checkingAccount = checkingAccountBo.getCheckingAccountById(user.getId() );
+																			log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																			
+																		} else {
+																			// not enough money for transfer
+																			log.info( "Not enough money for transfer" );
+																		}
+																			
+																		} catch ( IOException e ) {
+																			
+																		} catch ( NumberFormatException e ) {
+																			log.error( "Not a valid currency entry." );
+																		} catch ( BusinessException e ) {
+																			log.error( e );
+																		}
+																		
+																	}														
+																} else {
+																	log.info( "user does not have a savings account" );
+																}
+																
+															} else {
+																log.info( "Not a valid input" );
+															}
+														}
+															
+														} catch ( BusinessException e ) {
+															log.error( e.getMessage() );
+														}
 														break;
 													case 4:
-														break;
+														// accept transfers
+														ArrayList <Transfer> transferList = new ArrayList();
+														transferList = transferBo.getTransfersByUserId( user.getId() );
+														log.info( transferList.size() );
+														
+														for ( Transfer t : transferList ) {
+															log.info( t + " from : " + bo.getUserById( t.getOrigin() ) );
+															log.info( "[ 1 ] Accept" );
+															log.info( "[ 2 ] Reject" );
+															try {
+															int pendingCh = Integer.parseInt( bufferedReader.readLine() ); 
+															if ( pendingCh == 1 ) {
+																double amount = t.getAmount();
+																double currentBalance = checkingAccount.getBalance();
+																Double newBalance = amount + currentBalance;
+//																checkingAccount.setBalance( newBalance );
+																checkingAccountBo.updateBalance( user.getId(), "deposit", amount, checkingAccount.getBalance() );
+																checkingAccount = checkingAccountBo.getCheckingAccountById(user.getId() );
+																transferBo.setStatus( t.getId(), 'A' );
+															} else {
+																log.info( "Transfer rejected" );
+																// TODO reject transfer
+																transferBo.setStatus( t.getId(), 'R' );
+															}
+															} catch (IOException e){
+																
+															} catch( NumberFormatException e ) {
+																log.info( "Please select 1 or 2" );
+															}
+															break;
+														}
 													case 5:
+														log.info( "logging out" );
 														break;
 													} // END OF SWITCH
 													} while( chChoice != 5 );
@@ -410,15 +651,17 @@ public class BankMain {
 												log.info( "Your checking account is still under review. Please check back soon." );
 											} else {
 												CheckingAccount checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
-												log.info( "Your account balance is : $" + checkingAccount.getBalance() );
-												log.info( "Please make a selection" );
+												
 																							
 												int chChoice = 0;
 												do {
+												log.info( "Your account balance is : $" + checkingAccount.getBalance() );
+												log.info( "Please make a selection" );
+													
 												log.info( "[ 1 ] deposit" );
 												log.info( "[ 2 ] withdraw");
 												log.info( "[ 3 ] transfer money" );
-												log.info( "[ 4 ] recieve transfer" );
+												log.info( "[ 4 ] view pending transfers" );
 												log.info( "[ 5 ] Go Back" );
 												try {		
 													chChoice = Integer.parseInt( bufferedReader.readLine() );
@@ -435,8 +678,9 @@ public class BankMain {
 														log.info( "Please enter an amount to deposit : " );
 														 Double amount = Double.parseDouble( bufferedReader.readLine() );
 														 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, checkingAccount.getBalance(),  user.getId() );
-														 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+														 
 														 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+														 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
 														 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
 													} catch ( IOException e ) {
 														
@@ -451,8 +695,10 @@ public class BankMain {
 														log.info( "Please enter an amount to withdraw : " );
 														 Double amount = Double.parseDouble( bufferedReader.readLine() );
 														 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, checkingAccount.getBalance(),  user.getId() );
-														 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
+														 
+														 
 														 checkingAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), checkingAccount.getBalance() );
+														 checkingAccount = checkingAccountBo.getCheckingAccountById( user.getId() );
 														 log.info(checkingAccountBo.getCheckingAccountById( user.getId() ) );
 													} catch ( IOException e ) {
 														
@@ -464,12 +710,125 @@ public class BankMain {
 													break;
 												case 3:
 													// TODO transfer to another account
+													
+													log.info( "Siegel Bank money transfers:");
+													log.info( "please enter the username of account to transfer to : " );
+													username = bufferedReader.readLine();
+													try {
+													User transferUser = bo.findUser( username );
+													if ( transferUser != null ) {
+														log.info( "Checking or savings account?" );
+														log.info( "[ 1 ] checking" );
+														log.info( "[ 2 ] savings account" );
+														
+														int accountChoice = Integer.parseInt( bufferedReader.readLine() );
+														
+														Account transferAccount = accountBo.getAccountByUserId( transferUser.getId() );
+														if ( accountChoice == 1) {
+															if ( transferBo.isRegistered( transferAccount.getRegisteredChecking() ) ) {
+																
+																try {
+																log.info( "Please enter the amount to transfer :" );
+																double amount = Double.parseDouble( bufferedReader.readLine() );
+																if ( checkingAccount.getBalance() >= amount ) {
+																transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																checkingAccountBo.updateBalance( user.getId(), "withdraw", amount, checkingAccount.getBalance() );
+																checkingAccount = checkingAccountBo.getCheckingAccountById(user.getId() );
+																log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																} else {
+																	// not enough money for transfer
+																	log.info( "Not enough money for transfer" );
+																}
+																} catch ( IOException e ) {
+																	
+																} catch ( NumberFormatException e ) {
+																	log.error( "Not a valid currency entry." );
+																} catch ( BusinessException e ) {
+																	log.error( e );
+																}
+																	
+															} else {
+																log.info( "User does not have a checking account" );
+															}
+															
+														} else if ( accountChoice == 2 ) {
+															if ( transferBo.isRegistered( transferAccount.getAppliedSavings() ) ) {
+																if ( transferBo.isRegistered( transferAccount.getRegisteredSavings() ) ) {
+																	try {
+																	log.info( "Please enter the amount to transfer :" );
+																	double amount = Double.parseDouble( bufferedReader.readLine() );
+																	// check that sender has enough to cover amount
+																	if ( checkingAccount.getBalance() >= amount ) {
+																		log.info( checkingAccount.getBalance() );
+																		
+																		transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																		checkingAccountBo.updateBalance( user.getId(), "withdraw", amount, checkingAccount.getBalance() );
+																		checkingAccount = checkingAccountBo.getCheckingAccountById(user.getId() );
+																		log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																		
+																	} else {
+																		// not enough money for transfer
+																		log.info( "Not enough money for transfer" );
+																	}
+																		
+																	} catch ( IOException e ) {
+																		
+																	} catch ( NumberFormatException e ) {
+																		log.error( "Not a valid currency entry." );
+																	} catch ( BusinessException e ) {
+																		log.error( e );
+																	}
+																	
+																}														
+															} else {
+																log.info( "user does not have a savings account" );
+															}
+															
+														} else {
+															log.info( "Not a valid input" );
+														}
+													}
+														
+													} catch ( BusinessException e ) {
+														log.error( e.getMessage() );
+													}
+											
 													break;
 												case 4:
-													// TODO view incoming transfers
+													
+													ArrayList <Transfer> transferList = new ArrayList();
+													transferList = transferBo.getTransfersByUserId( user.getId() );
+													log.info( transferList.size() );
+													
+													for ( Transfer t : transferList ) {
+														log.info( t + " from : " + bo.getUserById( t.getOrigin() ) );
+														log.info( "[ 1 ] Accept" );
+														log.info( "[ 2 ] Reject" );
+														try {
+														int pendingCh = Integer.parseInt( bufferedReader.readLine() ); 
+														if ( pendingCh == 1 ) {
+															double amount = t.getAmount();
+															double currentBalance = checkingAccount.getBalance();
+															Double newBalance = amount + currentBalance;
+//															checkingAccount.setBalance( newBalance );
+															checkingAccountBo.updateBalance( user.getId(), "Deposit", amount, checkingAccount.getBalance() );
+															checkingAccount = checkingAccountBo.getCheckingAccountById(user.getId() );
+															transferBo.setStatus( t.getId(), 'A' );
+														} else {
+															log.info( "Transfer rejected" );
+															// TODO reject transfer
+															transferBo.setStatus( t.getId(), 'A' );
+														}
+														} catch (IOException e){
+															
+														} catch( NumberFormatException e ) {
+															log.info( "Please select 1 or 2" );
+														}
+														
+													}
 													break;
 												case 5:
-													// TODO go back to customer menu
+													ch = 0;
 													break;
 												} // END OF SWITCH
 												} while( chChoice != 5 );
@@ -481,18 +840,23 @@ public class BankMain {
 											if ( account.getRegisteredSavings() == 'N' ) {
 												log.info( "Your savings account is still under review. Please check back soon." );
 											} else {
-												SavingsAccount savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
-												log.info( "Your account balance is : $" + savingsAccount.getBalance() );
-												log.info( "Please make a selection" );
+//												SavingsAccount savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+//												log.info( "Your account balance is : $" + savingsAccount.getBalance() );
+//												log.info( "Please make a selection" );
+												SavingsAccount savingsAccount;
 												
 												
 												
 												int sacChoice = 0;
 												do {
+												 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+													log.info( "Your account balance is : $" + savingsAccount.getBalance() );
+													log.info( "Please make a selection" );
+													
 													log.info( "[ 1 ] deposit" );
 													log.info( "[ 2 ] withdraw");
 													log.info( "[ 3 ] transfer money" );
-													log.info( "[ 4 ] recieve transfer" );
+													log.info( "[ 4 ] view pending transfers" );
 													log.info( "[ 5 ] Go Back" );
 													try {		
 														sacChoice = Integer.parseInt( bufferedReader.readLine() );
@@ -509,8 +873,9 @@ public class BankMain {
 															log.info( "Please enter an amount to deposit : " );
 															 Double amount = Double.parseDouble( bufferedReader.readLine() );
 															 Transaction transaction = transactionsBo.makeTransaction( "deposit",  amount, savingsAccount.getBalance(),  user.getId() );
-															 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+															 
 															 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+															 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
 															 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
 														} catch ( IOException e ) {
 															
@@ -525,8 +890,9 @@ public class BankMain {
 															log.info( "Please enter an amount to withdraw : " );
 															 Double amount = Double.parseDouble( bufferedReader.readLine() );
 															 Transaction transaction = transactionsBo.makeTransaction( "withdraw",  amount, savingsAccount.getBalance(),  user.getId() );
-															 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
 															 savingsAccountBo.updateBalance( user.getId(), transaction.getType(), transaction.getAmount(), savingsAccount.getBalance() );
+															 savingsAccount = savingsAccountBo.getSavingsAccountById( user.getId() );
+
 															 log.info(savingsAccountBo.getSavingsAccountById( user.getId() ) );
 														} catch ( IOException e ) {
 															
@@ -538,9 +904,123 @@ public class BankMain {
 														break;
 													case 3:
 														// TODO transfer to another account
+														log.info( "Siegel Bank money transfers:");
+														log.info( "please enter the username of account to transfer to : " );
+														username = bufferedReader.readLine();
+														try {
+														User transferUser = bo.findUser( username );
+														if ( transferUser != null ) {
+															log.info( "Checking or savings account?" );
+															log.info( "[ 1 ] checking" );
+															log.info( "[ 2 ] savings account" );
+															
+															int accountChoice = Integer.parseInt( bufferedReader.readLine() );
+															
+															Account transferAccount = accountBo.getAccountByUserId( transferUser.getId() );
+															if ( accountChoice == 1) {
+																if ( transferBo.isRegistered( transferAccount.getRegisteredChecking() ) ) {
+																	
+																	try {
+																	log.info( "Please enter the amount to transfer :" );
+																	double amount = Double.parseDouble( bufferedReader.readLine() );
+																	if ( savingsAccount.getBalance() >= amount ) {
+																	transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																	savingsAccountBo.updateBalance( user.getId(), "withdraw", amount, savingsAccount.getBalance() );
+																	savingsAccount = savingsAccountBo.getSavingsAccountById(user.getId() );
+																	log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																	} else {
+																		// not enough money for transfer
+																		log.info( "Not enough money for transfer" );
+																	}
+																	} catch ( IOException e ) {
+																		
+																	} catch ( NumberFormatException e ) {
+																		log.error( "Not a valid currency entry." );
+																	} catch ( BusinessException e ) {
+																		log.error( e );
+																	}
+																		
+																} else {
+																	log.info( "User does not have a checking account" );
+																}
+																
+															} else if ( accountChoice == 2 ) {
+																if ( transferBo.isRegistered( transferAccount.getAppliedSavings() ) ) {
+																	if ( transferBo.isRegistered( transferAccount.getRegisteredSavings() ) ) {
+																		try {
+																		log.info( "Please enter the amount to transfer :" );
+																		double amount = Double.parseDouble( bufferedReader.readLine() );
+																		// check that sender has enough to cover amount
+																		if ( savingsAccount.getBalance() >= amount ) {
+																			log.info( savingsAccount.getBalance() );
+																			
+																			transferBo.makeTransfer( transferUser.getId(), user.getId(), amount, accountChoice );
+																			savingsAccountBo.updateBalance( user.getId(), "withdraw", amount, savingsAccount.getBalance() );
+																			savingsAccount = savingsAccountBo.getSavingsAccountById(user.getId() );
+																			log.info( "Transfer is pending for " + transferUser.getUsername() + " to accept" );
+																			
+																		} else {
+																			// not enough money for transfer
+																			log.info( "Not enough money for transfer" );
+																		}
+																			
+																		} catch ( IOException e ) {
+																			
+																		} catch ( NumberFormatException e ) {
+																			log.error( "Not a valid currency entry." );
+																		} catch ( BusinessException e ) {
+																			log.error( e );
+																		}
+																		
+																	}														
+																} else {
+																	log.info( "user does not have a savings account" );
+																}
+																
+															} else {
+																log.info( "Not a valid input" );
+															}
+														}
+															
+														} catch ( BusinessException e ) {
+															log.error( e.getMessage() );
+														}
 														break;
+														
+														
 													case 4:
 														// TODO view incoming transfers
+														ArrayList <Transfer> transferList = new ArrayList();
+														transferList = transferBo.getTransfersByUserId( user.getId() );
+														log.info( transferList.size() );
+														
+														for ( Transfer t : transferList ) {
+															log.info( t + " from : " + bo.getUserById( t.getOrigin() ) );
+															log.info( "[ 1 ] Accept" );
+															log.info( "[ 2 ] Reject" );
+															try {
+															int pendingCh = Integer.parseInt( bufferedReader.readLine() ); 
+															if ( pendingCh == 1 ) {
+																double amount = t.getAmount();
+																double currentBalance = savingsAccount.getBalance();
+																Double newBalance = amount + currentBalance;
+//																savingsAccount.setBalance( newBalance );
+																transferBo.setStatus( t.getId(), 'A' );
+																savingsAccountBo.updateBalance( user.getId(), "deposit", amount, savingsAccount.getBalance() );
+																savingsAccount = savingsAccountBo.getSavingsAccountById(user.getId() );
+															} else {
+																log.info( "Transfer rejected" );
+																// TODO reject transfer
+																transferBo.setStatus( t.getId(), 'A' );
+															}
+															} catch (IOException e){
+																
+															} catch( NumberFormatException e ) {
+																log.info( "Please select 1 or 2" );
+															}
+															
+														}
+	
 														break;
 													case 5:
 														// TODO go back to customer menu
@@ -577,7 +1057,8 @@ public class BankMain {
 									log.info( "[ 1 ] review new accounts" );
 									log.info( "[ 2 ] log transactions");
 									log.info( "[ 3 ] log all transfer" );
-									log.info( "[ 4 ] Log out" );
+									log.info( "[ 4 ] view customer's account" );
+									log.info( "[ 5 ] Log out" );
 									try {
 									empCh = Integer.parseInt( bufferedReader.readLine() );
 									} catch ( IOException e ) {
@@ -591,37 +1072,67 @@ public class BankMain {
 											log.info( "Searching for accounts to review :" );
 											
 											ArrayList <Account> accountList;
-											
 											try {
-												
-												accountList = accountBo.searchAppliedAccountsChecking();
-												accountList.addAll( accountBo.searchAppliedAccountsSavings() );	
-												
-												for ( Account a : accountList ) {
-													log.info( a );
-													log.info( "[ 1 ] approve" );
-													log.info( "[ 2 ] reject " );
-													try {
-													int ar = Integer.parseInt( bufferedReader.readLine() );
-													if ( ar == 1 ) {
-														accountBo.approveAccount( a );
-													} else if ( ar == 2 ) {
-														
-														accountBo.rejectAccount( a );
-													} else {
-														log.info( "Please choose 1 or 2" );
-													}
-													} catch ( IOException e ) {
-														
-													} catch ( NumberFormatException e ) {
-														log.info( "Please choose 1 or 2" );
-													}
-													 
+											try {
+											accountList = accountBo.searchAppliedAccountsChecking();
+			
+											for ( Account a : accountList ) {
+												log.info( a );
+												log.info( "[ 1 ] approve" );
+												log.info( "[ 2 ] reject " );
+												try {
+												int ar = Integer.parseInt( bufferedReader.readLine() );
+												if ( ar == 1 ) {
+													accountBo.approveAccount( a );
+												} else if ( ar == 2 ) {
+													
+													accountBo.rejectAccount( a );
+												} else {
+													log.info( "Please choose 1 or 2" );
 												}
-							
-												
+												} catch ( IOException e ) {
+													
+												} catch ( NumberFormatException e ) {
+													log.info( "Please choose 1 or 2" );
+												}
+												 
+											}
+
+											
 											} catch ( BusinessException e ) {
-												log.error( e );
+												log.error( "no checking accounts found" );
+												
+											}
+											
+											ArrayList <Account> savingsArray = new ArrayList();
+										
+											savingsArray = accountBo.searchAppliedAccountsSavings();
+											
+											
+											for ( Account a : savingsArray ) {
+												log.info( a );
+												log.info( "[ 1 ] approve" );
+												log.info( "[ 2 ] reject " );
+												try {
+												int ar = Integer.parseInt( bufferedReader.readLine() );
+												if ( ar == 1 ) {
+													accountBo.approveAccount( a );
+												} else if ( ar == 2 ) {
+													
+													accountBo.rejectAccount( a );
+												} else {
+													log.info( "Please choose 1 or 2" );
+												}
+												} catch ( IOException e ) {
+													
+												} catch ( NumberFormatException e ) {
+													log.info( "Please choose 1 or 2" );
+												}
+												 
+											}
+											
+											} catch ( BusinessException e ) {
+												log.error( "No checking savings found" );
 											}
 											
 											empCh = 0;
@@ -631,15 +1142,18 @@ public class BankMain {
 										case 3:
 											break;
 										case 4:
+											
+											break;
+										case 5: 
 											log.info( "logging out" );
 											ch = 0;
 											break;
-										default: log.info( "Please input a number 1 - 4" );
+										default: log.info( "Please input a number 1 - 5 ");
 												empCh = 0;
 									}
 									
 									
-									} while ( empCh != 4 );
+									} while ( empCh != 5 );
 								}
 								} catch ( BusinessException e ) {
 									log.error( e );

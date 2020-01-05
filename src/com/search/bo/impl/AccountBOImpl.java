@@ -39,8 +39,6 @@ public class AccountBOImpl implements AccountBO {
 		int c;
 		c = getDao().createNewAccount( id );
 		return c;
-		
-		
 	}
 	
 	@Override
@@ -84,17 +82,6 @@ public class AccountBOImpl implements AccountBO {
 		}
 		return dao;
 	}
-
-	
-
-	
-
-	
-
-	
-
-
-
 
 	
 }
